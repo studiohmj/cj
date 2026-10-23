@@ -1028,7 +1028,7 @@ function result(){
     const ci=a.measured?Math.round(a.consistent/a.measured*100):0;
     html+=`<section class="block"><div class="bh"><h2>인성검사 Part 1</h2><span class="small muted">정답이 없는 검사라 점수 대신 응답 패턴만 정리했어요</span></div>
       <div class="kpis"><div class="kpi"><span>응답 문항</span><b>${a.answered}<small> / 275</small></b></div><div class="kpi"><span>일관된 응답 묶음</span><b>${ci}<small>%</small></b></div><div class="kpi"><span>사용 시간</span><b style="font-size:22px">${mins(R.cft1.used)}</b></div></div>
-      <div class="two">
+      ${a.answered?`<div class="two">
         <div class="card"><div class="card-h"><b>요인별 응답 평균</b><span>1~5, 가운데 선 = 3</span></div>
           <div class="prof">${sorted.map(f=>{const v=avg(f);return `<div class="prof-r"><span>${FACTORS[f]}</span><span class="t"><i style="width:${(v-1)/4*100}%"></i></span><b>${v.toFixed(1)}</b></div>`}).join("")}</div>
           <p class="small muted">반대 방향 문항은 뒤집어서 합산했어요. 실제 검사의 요인 구성이나 채점 방식과는 다릅니다.</p></div>
@@ -1041,8 +1041,8 @@ function result(){
       </div>
       <div class="card"><div class="card-h"><b>응답이 엇갈린 묶음</b><span>${a.incons.length}개 중 상위 ${Math.min(6,a.incons.length)}개</span></div>
         <p class="small sub">같은 성향을 다른 표현과 반대 방향으로 물은 문항들입니다. 답이 2칸 이상 벌어진 묶음을 보여 줘요. 실제 시험에서는 '맞추려고' 하기보다 구체적인 경험 하나를 떠올리고 답하면 자연스럽게 일관돼요.</p>
-        ${a.incons.length?a.incons.slice(0,6).map(x=>{const g=G[x.g];return `<div class="pair"><span class="k">${FACTORS[g[0]]} · 차이 ${x.sp}칸</span>${[1,2,3].filter(k=>x.o[k]!=null).map(k=>`<span>${g[k]}${k===3?' <span class="muted small">(반대 방향)</span>':""} → <b>${LK[x.o[k]-1]}</b></span>`).join("")}</div>`}).join(""):`<p class="sub">엇갈린 묶음이 없어요. 매우 일관된 응답입니다.</p>`}
-      </div>
+        ${a.incons.length?a.incons.slice(0,6).map(x=>{const g=G[x.g];return `<div class="pair"><span class="k">${FACTORS[g[0]]} · 차이 ${x.sp}칸</span>${[1,2,3].filter(k=>x.o[k]!=null).map(k=>`<span>${g[k]}${k===3?' <span class="muted small">(반대 방향)</span>':""} → <b>${LK[x.o[k]-1]}</b></span>`).join("")}</div>`}).join(""):a.measured?`<p class="sub">엇갈린 묶음이 없어요. 매우 일관된 응답입니다.</p>`:`<p class="sub">같은 묶음의 문항에 두 개 이상 응답해야 비교할 수 있어요.</p>`}
+      </div>`:`<div class="card"><p class="sub">응답한 문항이 없어 분석할 수 없어요. 제한시간 안에 응답한 문항만 분석에 쓰입니다.</p></div>`}
     </section>`;
   }
   if(R.cft2){
@@ -1058,10 +1058,10 @@ function result(){
     const warn=fs.filter(f=>cnt[f].n===0&&cnt[f].f/appear[f]>=.5);
     const chart=fs.map(f=>{const v=pri(f);return `<div class="pv-r"><span>${FACTORS[f]}</span><span class="pv-t"><i class="${v>=0?"pos":"neg"}" style="width:${Math.abs(v)*50}%"></i></span><span class="pv-n">가깝다 ${cnt[f].n}/${appear[f]} · 멀다 ${cnt[f].f}/${appear[f]}</span></div>`}).join("");
     let cmp="";
-    if(A1){const avg=f=>A1.prof[f]?A1.prof[f].reduce((s,x)=>s+x,0)/A1.prof[f].length:0;const top1=Object.keys(cnt).sort((a,b)=>avg(b)-avg(a)).slice(0,3),top2=fs.slice(0,3);const both=top1.filter(f=>top2.includes(f));
+    if(A1&&A1.answered&&doneSets){const avg=f=>A1.prof[f]?A1.prof[f].reduce((s,x)=>s+x,0)/A1.prof[f].length:0;const top1=Object.keys(cnt).sort((a,b)=>avg(b)-avg(a)).slice(0,3),top2=fs.slice(0,3);const both=top1.filter(f=>top2.includes(f));
       cmp=`<p class="sub">Part 1 상위 요인: <b>${top1.map(f=>FACTORS[f]).join(", ")}</b> / Part 2 상위 요인: <b>${top2.map(f=>FACTORS[f]).join(", ")}</b>. ${both.length>=2?"두 파트의 응답 방향이 대체로 같아요.":"두 파트의 상위 요인이 많이 달라요. 점수형으로 답할 때와 하나를 골라야 할 때 기준이 바뀌지 않았는지 떠올려 보세요."}</p>`}
     html+=`<section class="block"><div class="bh"><h2>인성검사 Part 2</h2><span class="small muted">${doneSets} / 90세트 응답 · ${mins(r.used)}</span></div>
-      <div class="card"><div class="card-h"><b>요인별 우선순위 지수</b><span class="legend"><span><i style="background:var(--omr)"></i>멀다 쪽</span><span><i style="background:var(--accent)"></i>가깝다 쪽</span></span></div>
+      ${doneSets?`<div class="card"><div class="card-h"><b>요인별 우선순위 지수</b><span class="legend"><span><i style="background:var(--omr)"></i>멀다 쪽</span><span><i style="background:var(--accent)"></i>가깝다 쪽</span></span></div>
         <p class="small sub">세트마다 세 문장 중 하나를 고르는 강제선택형이라, 이 결과는 절대적인 성향 점수가 아니라 가치가 부딪힐 때 무엇을 먼저 고르는지 보여주는 상대적 우선순위예요.</p>
         <div class="pv">${chart}<div class="pv-r pv-ax"><span></span><span class="pv-sc"><span>−1</span><span>0</span><span>+1</span></span><span class="pv-n"></span></div></div>
         <p class="small muted">지수 = (가깝다 − 멀다) ÷ 출제 수. 요인마다 출제 횟수가 달라서 횟수 대신 비율로 비교했어요.</p>
@@ -1074,7 +1074,7 @@ function result(){
         ${warn.length?`<div class="confirm"><b>한 번도 가깝다로 고르지 않고 절반 이상 멀다로 고른 요인: ${warn.map(f=>FACTORS[f]).join(", ")}</b><span>실제로 덜 중요하게 여기는지, 다른 문장이 더 끌려서 밀려난 것인지 구분해 보세요.</span></div>`:""}
         ${cmp}
         <p class="small muted">이 연습장 기준의 참고 분석이며 CJ의 실제 평가 방식과는 관계없습니다.</p>
-      </div></section>`;
+      </div>`:`<div class="card"><p class="sub">응답을 마친 세트가 없어 분석할 수 없어요. 가깝다·멀다를 모두 고른 세트만 분석에 쓰입니다.</p></div>`}</section>`;
   }
   html+=`<p class="foot">해설은 직접 만든 연습 문항 기준입니다. 인성검사 분석은 이 연습장의 문항 묶음으로 계산한 참고 자료이며 CJ의 실제 평가 기준과 관계없습니다.</p></main>`;
   app.innerHTML=html;
